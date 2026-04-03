@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import './App.css';
+import { contentAPI } from './api';
 
 const App = () => {
   const [formData, setFormData] = useState({
@@ -108,7 +108,7 @@ const App = () => {
     setSubmitMessage('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/content', formData);
+      const response = await contentAPI.submitContent(formData);
       
       if (response.data.success) {
         setSubmitMessage('Content submitted successfully!');
@@ -122,12 +122,15 @@ const App = () => {
         });
       }
     } catch (error) {
+      console.error('API Error:', error);
+      
       if (error.response && error.response.status === 400) {
         // Server validation errors
         setErrors(error.response.data.errors || {});
         setSubmitMessage('Please fix the validation errors');
       } else {
-        setSubmitMessage('Error submitting form. Please try again.');
+        // Use the enhanced error message from our API interceptor
+        setSubmitMessage(error.message || 'Error submitting form. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
